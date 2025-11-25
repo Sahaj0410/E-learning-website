@@ -1,11 +1,15 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import Header from "./_components/Header";
+import Hero from "./Hero";
 
 export default function Home() {
   return (
-    <>
-     <h1 className="font-game text-2xl">Welcome to the home page!</h1>
-     <Button>Click me</Button>
-    </>
+    <div className="flex flex-col items-center">
+      {/* Header / navbar Section */}
+     <Header/>
+      {/* Hero Section */}
+      <Hero/>
+    </div>
   );
 }

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono , Pixelify_Sans,Inter} from "next/font/google";
 import "./globals.css";
+import { Provider } from "@radix-ui/react-tooltip";
+import Themeprovider from "./Themeprovider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,13 +36,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning className="dark">
       <body
         className={`${geistSans.variable} ${geistMono.variable} 
           ${Gamefont.variable} ${inter.variable}
           antialiased`}
       >
+        <Themeprovider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+        >
         {children}
+        </Themeprovider>
       </body>
     </html>
   );
