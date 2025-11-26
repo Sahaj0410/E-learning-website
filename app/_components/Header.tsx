@@ -1,3 +1,5 @@
+'use client';
+
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,6 +15,8 @@ import {
   NavigationMenuTrigger,
   NavigationMenuViewport,
 } from "@/components/ui/navigation-menu";
+import { UserButton, useUser } from "@clerk/nextjs";
+import { User } from "lucide-react";
 
 const courses = [
   {
@@ -72,6 +76,8 @@ const courses = [
 ];
 
 function Header() {
+
+  const {user}=useUser();
   return (
     <div className="p-4 max-w-7xl flex justify-between items-center w-full">
       <div className="flex items-center gap-1 ">
@@ -114,11 +120,14 @@ function Header() {
       </NavigationMenu>
 
       {/*Signup button*/}
-      <Button className="font-game text-2xl" variant={"pixel"}>
-        Signup
-      </Button>
+      {!user? <Link href="/sign-in"><Button className="font-game text-2xl" variant={"pixel"}>
+            Sign-in</Button></Link>
+        :<div className="flex items-center gap-4"> 
+            <Link href="/dashboard"><Button className="font-game text-2xl" variant={"pixel"}>Dashboard</Button></Link>
+            <UserButton/>
+              </div>}
     </div>
   );
 }
 
-export default Header;
+export default Header; 
