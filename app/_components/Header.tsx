@@ -77,7 +77,7 @@ const courses = [
 
 function Header() {
 
-  const {user}=useUser();
+  const { user } = useUser();
   return (
     <div className="p-4 max-w-7xl flex justify-between items-center w-full">
       <div className="flex items-center gap-1 ">
@@ -85,49 +85,68 @@ function Header() {
         <Image src={"/logo.png"} alt="logo" width={40} height={40} />
       </div>
 
-      {/*Navbar*/}
+      {/* Navbar */}
       <NavigationMenu>
         <NavigationMenuList className="gap-8">
           <NavigationMenuItem>
             <NavigationMenuTrigger>Courses</NavigationMenuTrigger>
             <NavigationMenuContent>
-                <ul className="grid md:grid-cols-2 gap-2 sm:w-[400px] md:w-[500px] lg:w-[600px]">
-                    {courses.map((course,index)=>(
-                        <div key={index} className="p-2 hover:bg-accent rounded-xl cursor-pointer">
-                            <h2 className="font-medium">{course.name}</h2>
-                            <p className="text-sm text-gray-500 ">{course.desc}</p>
-                        </div>
-                    ))}
-                </ul>
+              <ul className="grid md:grid-cols-2 gap-2 sm:w-[400px] md:w-[500px] lg:w-[600px]">
+                {courses.map((course, index) => (
+                  <li key={course.id ?? index} className="p-2 hover:bg-accent rounded-xl cursor-pointer">
+                    {/* If you want each course clickable, wrap with Link */}
+                    <Link href={course.path} className="block">
+                      <h2 className="font-medium">{course.name}</h2>
+                      <p className="text-sm text-gray-500 ">{course.desc}</p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </NavigationMenuContent>
           </NavigationMenuItem>
+
           <NavigationMenuItem>
-              <NavigationMenuLink>
-                <Link href={'/projects'}>projects</Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
+            {/* use asChild so NavigationMenuLink doesn't render its own <a> */}
+            <NavigationMenuLink asChild>
+              <Link href={'/projects'} className="navigation-menu-link">projects</Link>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+
           <NavigationMenuItem>
-              <NavigationMenuLink>
-                <Link href={'/pricing'}>pricing</Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
+            <NavigationMenuLink asChild>
+              <Link href={'/pricing'} className="navigation-menu-link">pricing</Link>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+
           <NavigationMenuItem>
-              <NavigationMenuLink>
-                <Link href={'/contact-us'}>Contact Us</Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
+            <NavigationMenuLink asChild>
+              <Link href={'/contact-us'} className="navigation-menu-link">Contact Us</Link>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
         </NavigationMenuList>
+
+        {/* optional: NavigationMenuIndicator / Viewport if your component supports them */}
+        <NavigationMenuIndicator />
+        <NavigationMenuViewport />
       </NavigationMenu>
 
-      {/*Signup button*/}
-      {!user? <Link href="/sign-in"><Button className="font-game text-2xl" variant={"pixel"}>
-            Sign-in</Button></Link>
-        :<div className="flex items-center gap-4"> 
-            <Link href="/dashboard"><Button className="font-game text-2xl" variant={"pixel"}>Dashboard</Button></Link>
-            <UserButton/>
-              </div>}
+      {/* Signup / User */}
+      {!user ? (
+        <Link href="/sign-in">
+          <Button className="font-game text-2xl" variant={"pixel"}>
+            Sign-in
+          </Button>
+        </Link>
+      ) : (
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard">
+            <Button className="font-game text-2xl" variant={"pixel"}>Dashboard</Button>
+          </Link>
+          <UserButton />
+        </div>
+      )}
     </div>
   );
 }
 
-export default Header; 
+export default Header;
