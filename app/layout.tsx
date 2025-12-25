@@ -6,6 +6,7 @@ import Themeprovider from "./Themeprovider";
 import {
   ClerkProvider,
 } from '@clerk/nextjs'
+import { Toaster } from "sonner";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -53,6 +54,7 @@ export default function RootLayout({
             disableTransitionOnChange
             >
         {children}
+        <Toaster />
         </Themeprovider>
       </body>
     </html>
