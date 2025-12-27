@@ -13,6 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import Link from 'next/link';
 
 
 type Props = {
@@ -21,6 +22,44 @@ type Props = {
 };
 
 function CourseChapters({loading,courseDetail}: Props) {
+  
+  const EnableExercise = (
+  chapterIndex: number,
+  exerciseIndex: number,
+  chapterExercisesLength: number
+) => {
+  const completed = courseDetail?.completedExercises;
+
+  // If nothing is completed, enable FIRST exercise ONLY
+  if (!completed || completed.length === 0) {
+    return chapterIndex === 0 && exerciseIndex === 0;
+  }
+
+  // last completed
+  const last = completed[completed.length - 1];
+
+  // Convert to global exercise number
+  const currentExerciseNumber =
+    chapterIndex * chapterExercisesLength + exerciseIndex + 1;
+
+  const lastCompletedNumber =
+    (last.chapterId - 1) * chapterExercisesLength + last.exerciseId;
+
+  return currentExerciseNumber === lastCompletedNumber + 2;
+};
+
+
+const isExerciseCompleted = (chapterId:number,exerciseId:number) => {
+      const completedChapters = courseDetail?.completedExercises;
+
+     const completedChapter =   completedChapters?.find((item=>item.chapterId==chapterId && item.exerciseId==exerciseId))
+            
+         return completedChapter? true : false;
+
+    }
+
+
+
   return (
     <div>
       {courseDetail?.chapters?.length===0?
@@ -47,16 +86,36 @@ function CourseChapters({loading,courseDetail}: Props) {
                       <h2 className='text-2xl'>Exercise {index* chapter?.exercises?.length+indexexc +1}</h2>
                       <h2 className='text-2xl'>{exx?.name}</h2>
                       </div>
-                      {/* <Button variant={'pixel'}>{exx?.xp} xp</Button> */}
 
-                      <Tooltip>
-                   <TooltipTrigger asChild> 
-                      <Button variant={'pixelDisabled'}>???</Button>
-                    </TooltipTrigger> 
-                   <TooltipContent>
-                   <p className='font-game text-lg'>Please Enroll first</p>
-                   </TooltipContent>
-                   </Tooltip>
+                
+
+
+                     {EnableExercise(index, indexexc, chapter?.exercises.length) ? (
+<Link href={`/courses/${courseDetail?.id}/${chapter?.chapterID}/${exx?.slug}`}>
+  <Button variant={"pixel"}>{exx?.xp} xp</Button>
+  </Link>
+
+) : isExerciseCompleted(chapter?.chapterID, indexexc + 1) ? (
+
+  <Button
+    variant={"pixel"}
+    className="bg-green-600"
+  >
+    Completed
+  </Button>
+
+) : (
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <Button variant={"pixelDisabled"} disabled>
+        Locked
+      </Button>
+    </TooltipTrigger>
+    <TooltipContent>
+      <p className="font-game text-lg">Please complete previous exercise</p>
+    </TooltipContent>
+  </Tooltip>
+)}
 
                     </div>
                   ))}

@@ -17,6 +17,10 @@ import {
 } from "@/components/ui/navigation-menu";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { User } from "lucide-react";
+import { useParams, usePathname } from "next/navigation";
+
+
+
 
 const courses = [
   {
@@ -78,6 +82,13 @@ const courses = [
 function Header() {
 
   const { user } = useUser();
+
+  const path = usePathname();
+  console.log("Current Path:", path);
+
+  const {exerciseslug} = useParams();
+
+
   return (
     <div className="p-4 max-w-7xl flex justify-between items-center w-full">
       <div className="flex items-center gap-1 ">
@@ -86,7 +97,7 @@ function Header() {
       </div>
 
       {/* Navbar */}
-      <NavigationMenu>
+   {!exerciseslug ?  <NavigationMenu>
         <NavigationMenuList className="gap-8">
           <NavigationMenuItem>
             <NavigationMenuTrigger>Courses</NavigationMenuTrigger>
@@ -129,6 +140,11 @@ function Header() {
         <NavigationMenuIndicator />
         <NavigationMenuViewport />
       </NavigationMenu>
+      :
+      <h2 className="text-2xl">
+        {exerciseslug?.toString()?.replaceAll("-"," ").toLocaleUpperCase()}
+      </h2>
+    }
 
       {/* Signup / User */}
       {!user ? (

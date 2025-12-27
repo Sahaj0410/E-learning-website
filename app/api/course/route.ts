@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/config/db';
-import { CourseChaptersTable, coursesTable, EnrolledCourseTable } from '@/config/schema';
-import { and, eq } from 'drizzle-orm';
+import { completedExerciseTable, CourseChaptersTable, coursesTable, EnrolledCourseTable } from '@/config/schema';
+import { and, eq, desc } from 'drizzle-orm';
 import { currentUser } from '@clerk/nextjs/server';
 
 export async function GET(req: NextRequest) {
@@ -27,12 +27,21 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Course not found' }, { status: 404 });
       }
 
-      // Fetch chapters for the course
+      // Fetch chapters ordered
       const chapterResult = await db
         .select()
         .from(CourseChaptersTable)
-        .where(eq(CourseChaptersTable.courseID, courseId));
+        .where(eq(CourseChaptersTable.courseID, courseId))
+        .orderBy(CourseChaptersTable.chapterID);
 
+      // Sort exercises inside each chapter (if exists)
+      chapterResult.forEach((chapter: any) => {
+        if (chapter.exercises) {
+          chapter.exercises.sort((a: any, b: any) => Number(a.xp) - Number(b.xp));
+        }
+      });
+
+      // Check enrollment
       const enrolledCourse = await db
         .select()
         .from(EnrolledCourseTable)
@@ -43,19 +52,33 @@ export async function GET(req: NextRequest) {
           )
         );
 
-      const isEnrolledCourse = enrolledCourse?.length > 0 ? true : false;
+      const isEnrolledCourse = enrolledCourse?.length > 0;
+
+      // Completed Exercises (ordered)
+      const completedExercises = await db
+        .select()
+        .from(completedExerciseTable)
+        .where(
+          and(
+            eq(completedExerciseTable.courseId, courseId),
+            eq(completedExerciseTable.userId, user?.primaryEmailAddress?.emailAddress || "")
+          )
+        )
+        .orderBy(
+          desc(completedExerciseTable.chapterId),
+          desc(completedExerciseTable.exerciseId)
+        );
 
       return NextResponse.json({
         ...result[0],
         chapters: chapterResult,
         userEnrolled: isEnrolledCourse,
-        courseEnrolledInfo:enrolledCourse[0]
-
+        courseEnrolledInfo: enrolledCourse[0] || null,
+        completedExercises: completedExercises
       });
-
     }
 
-    // Fetch all courses → FIX APPLIED HERE 👇
+    // Fetch all courses if no courseId provided
     const all = await db.select().from(coursesTable);
     return NextResponse.json(
       all.map((course: any) => ({

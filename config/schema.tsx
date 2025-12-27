@@ -1,3 +1,4 @@
+import { id } from "date-fns/locale";
 import { integer, json, pgTable, varchar, timestamp } from "drizzle-orm/pg-core";
 
 export const usersTable = pgTable("users", {
@@ -35,4 +36,25 @@ export const EnrolledCourseTable = pgTable('enrollCourse',{
      xpEarned : integer(),
 
   
+})
+
+export const  completedExerciseTable = pgTable('completedExercise',{
+       id: integer().primaryKey().generatedAlwaysAsIdentity(),
+       courseId : integer(),
+       chapterId : integer(),
+       exerciseId : integer(),
+       userId: varchar(),
+
+
+
+
+      })
+
+export const ExerciseTable = pgTable('exercise',{
+         id: integer().primaryKey().generatedAlwaysAsIdentity(),
+         courseId: integer(),
+         chapterId: integer(),
+          exerciseId: varchar(),
+          exercisesContent: json(),
+          ererciseName: varchar()
 })
