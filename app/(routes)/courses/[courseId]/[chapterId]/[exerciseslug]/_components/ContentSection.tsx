@@ -12,7 +12,7 @@ function ContentSection({courseExerciseData,loading} : props) {
   const Contentinfo = courseExerciseData?.exerciseData;
 
   return (
-    <div className='p-10'>
+    <div className='p-10 mb-20'>
       {loading || !Contentinfo ? (
         <Skeleton className='h-full w-full m-10 rounded-2xl' />
       ) : (

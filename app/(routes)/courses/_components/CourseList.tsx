@@ -37,6 +37,7 @@ export type Chapter = {
 }
 
 export type exercise = {
+     id:number;
     name: string;
     slug: string;
     xp: number;

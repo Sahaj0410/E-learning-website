@@ -122,3 +122,21 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Force Sandpack layout to fill viewport below the header */
+.sandpack-layout,
+.sp-layout,
+.sp-editor,
+.sp-preview {
+  height: calc(100vh - 80px) !important;
+  max-height: calc(100vh - 80px) !important;
+}
+
+/* Ensure internal code area stretches fully */
+.sp-cm,
+.cm-editor,
+.sp-preview-iframe {
+  height: 100% !important;
+}
+
+
