@@ -1,26 +1,40 @@
+import Image from "next/image";
+import React from "react";
+import CourseList from "./_components/CourseList";
 
-
-import Image from 'next/image'
-import React from 'react'
-import CourseList from './_components/CourseList'
-
-function courses() {
+function Courses() {
   return (
     <div>
-        <div className='relative'>
-            <Image src={'/course-final.gif'} alt='coursebanner' width={1200} height={300}
-            className='w-full h-[300px] object-cover' />
-            <div className='absolute top-0 h-full pt-24 px-10 md:px-20 lg:px-36 bg-linear-to-r from-black/80 to-white-50/50  '>
-            <h2 className='font-game text-6xl'>Explore All Courses</h2>
-            <p className='font-game text-3xl'>Explore all courses and enrolled to learn and increase your skill</p>
-            </div>
+      <div className="relative w-full">
+        <Image
+          src="/course-final.gif"
+          alt="coursebanner"
+          width={1200}
+          height={300}
+          className="w-full h-[200px] sm:h-[260px] md:h-[300px] object-cover"
+          unoptimized
+        />
+
+        <div className="absolute inset-0 flex items-center bg-gradient-to-r from-black/80 to-black/20">
+          <div className="px-6 sm:px-10 md:px-20 lg:px-36">
+            <h2 className="font-game text-2xl sm:text-4xl md:text-6xl">
+              Explore All Courses
+            </h2>
+            <p className="font-game text-sm sm:text-lg md:text-2xl mt-2 max-w-2xl">
+              Explore all courses and enroll to learn and increase your skills
+            </p>
+          </div>
         </div>
-        <div className='mt-8 px-10 md:px-24 lg:px-36'>
-            <h2 className='font-game text-4xl'>All courses</h2>
-            <CourseList />
-        </div>
+      </div>
+
+      <div className="mt-8 px-6 sm:px-10 md:px-24 lg:px-36">
+        <h2 className="font-game text-2xl sm:text-3xl md:text-4xl mb-4">
+          All Courses
+        </h2>
+        <CourseList />
+      </div>
     </div>
-  )
+  );
 }
 
-export default courses
+export default Courses;

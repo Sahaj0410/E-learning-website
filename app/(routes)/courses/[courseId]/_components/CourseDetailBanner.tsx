@@ -1,10 +1,8 @@
-// app/(routes)/courses/[courseId]/_components/CourseDetailBanner.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import axios from "axios";
-import { set } from "date-fns";
 import { Loader2Icon } from "lucide-react";
 import Image from "next/image";
 import React, { useState } from "react";
@@ -26,56 +24,77 @@ type Props = {
   refreshData: () => void;
 };
 
-export default function CourseDetailBanner({ loading, courseDetail , refreshData}: Props) {
+export default function CourseDetailBanner({
+  loading,
+  courseDetail,
+  refreshData,
+}: Props) {
+  const [loadingEnroll, setLoadingEnroll] = useState(false);
 
-
-  const [loading_,setLoading_] = useState(false);
-  const EnrollCourse = async() => {
-    setLoading_(true);
-    const result = await axios.post('/api/enroll-course',{
-      courseId : courseDetail?.id,
-    })
-      console.log(result);
-      toast.success('Enrolled Successfully');
+  const EnrollCourse = async () => {
+    try {
+      setLoadingEnroll(true);
+      await axios.post("/api/enroll-course", {
+        courseId: courseDetail?.id,
+      });
+      toast.success("Enrolled Successfully");
       refreshData();
-    setLoading_(false);
-      
-  }
+    } finally {
+      setLoadingEnroll(false);
+    }
+  };
 
   return (
-    <div>
-      {!courseDetail?
-      <Skeleton className="w-full h-[300px] rounded-2xl"/>
-      :<div className="relative">
-         <Image src={courseDetail?.bannerImage?.trimEnd()} alt={courseDetail?.title}
-         width={1400} 
-         height={300}
-         className="w-full h-[300px] object-cover " 
-         />
-       <div className="font-game absolute top-0 pt-20 p-10 md:px-24 lg:px-36 bg-linear-to-r from-black/80 to-white-50/50 h-full  ">
-        <h2 className="text-6xl">{courseDetail?.title}</h2>
-        <p className="text-3xl mt-3 text-gray-300">{courseDetail?.desc}</p>
-       {!courseDetail?.userEnrolled ? (
-  <Button
-    onClick={EnrollCourse}
-    className="text-2xl mt-7"
-    variant={"pixel"}
-    size={"lg"}
-    disabled={loading_}
-  >
-    {loading_ && <Loader2Icon className="animate-spin" />}
-    Enroll now
-  </Button>
-) : (
-  <Button className="text-2xl mt-7" variant={"pixel"} size="lg">
-    Continue learning
-  </Button>
-)}
+    <section>
+      {!courseDetail ? (
+        <Skeleton className="w-full h-[200px] sm:h-[260px] md:h-[300px] rounded-2xl" />
+      ) : (
+        <div className="relative w-full">
+          <Image
+            src={courseDetail.bannerImage.trimEnd()}
+            alt={courseDetail.title}
+            width={1400}
+            height={300}
+            className="w-full h-[200px] sm:h-[260px] md:h-[300px] object-cover"
+            unoptimized
+          />
 
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/20 flex items-center">
+            <div className="font-game px-6 sm:px-10 md:px-20 lg:px-36">
+              <h2 className="text-2xl sm:text-4xl md:text-6xl">
+                {courseDetail.title}
+              </h2>
 
-       </div>
-      </div>
-      }
-    </div>
+              <p className="text-sm sm:text-lg md:text-2xl mt-2 text-gray-300 max-w-3xl">
+                {courseDetail.desc}
+              </p>
+
+              {!courseDetail.userEnrolled ? (
+                <Button
+                  onClick={EnrollCourse}
+                  className="mt-5 sm:mt-6 text-sm sm:text-lg md:text-2xl"
+                  variant="pixel"
+                  size="lg"
+                  disabled={loadingEnroll}
+                >
+                  {loadingEnroll && (
+                    <Loader2Icon className="animate-spin mr-2" />
+                  )}
+                  Enroll now
+                </Button>
+              ) : (
+                <Button
+                  className="mt-5 sm:mt-6 text-sm sm:text-lg md:text-2xl"
+                  variant="pixel"
+                  size="lg"
+                >
+                  Continue learning
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }

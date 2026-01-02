@@ -10,7 +10,6 @@ export async function POST(req: NextRequest) {
     const user = await currentUser();
     const userEmail = user?.primaryEmailAddress?.emailAddress!;
 
-    // Get XP of this exercise
     const exerciseData = await db.select()
       .from(ExerciseTable)
       .where(and(
@@ -21,7 +20,6 @@ export async function POST(req: NextRequest) {
 
     const xp = exerciseData[0]?.xp ?? 10;
 
-    // Prevent duplicate completion
     const alreadyCompleted = await db
       .select()
       .from(completedExerciseTable)
@@ -40,7 +38,6 @@ export async function POST(req: NextRequest) {
         userId: userEmail
       });
 
-      // Add XP for this course
       await db.update(EnrolledCourseTable)
         .set({
           xpEarned: sql`${EnrolledCourseTable.xpEarned} + ${xp}`
@@ -50,7 +47,6 @@ export async function POST(req: NextRequest) {
           eq(EnrolledCourseTable.userId, userEmail)
         ));
 
-      // Add XP to user points
       await db.update(usersTable)
         .set({
           points: sql`${usersTable.points} + ${xp}`

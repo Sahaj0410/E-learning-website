@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono , Pixelify_Sans,Inter} from "next/font/google";
+import { Geist, Geist_Mono, Pixelify_Sans, Inter } from "next/font/google";
 import "./globals.css";
-import { Provider } from "@radix-ui/react-tooltip";
 import Themeprovider from "./Themeprovider";
 import {
   ClerkProvider,
-} from '@clerk/nextjs'
+} from "@clerk/nextjs";
 import { Toaster } from "sonner";
+import { TooltipProvider } from "@/components/ui/tooltip"; // ✅ Correct import
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -20,13 +21,12 @@ const geistMono = Geist_Mono({
 const Gamefont = Pixelify_Sans({
   subsets: ["latin"],
   variable: "--font-game",
-
-})
+});
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
-})
+});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -35,29 +35,29 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <ClerkProvider>
-
-    <html lang="en" suppressHydrationWarning className="dark">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} 
-          ${Gamefont.variable} ${inter.variable}
-          antialiased`}
-          >
-        <Themeprovider
+      <html lang="en" suppressHydrationWarning className="dark">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} 
+          ${Gamefont.variable} ${inter.variable} antialiased`}
+        >
+          <Themeprovider
             attribute="class"
             defaultTheme="dark"
             enableSystem
             disableTransitionOnChange
-            >
-        {children}
-        <Toaster />
-        </Themeprovider>
-      </body>
-    </html>
-          </ClerkProvider>
+          >
+            <TooltipProvider> 
+              {children}
+              <Toaster />
+            </TooltipProvider>
+          </Themeprovider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

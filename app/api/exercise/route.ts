@@ -1,4 +1,4 @@
-import { CourseChaptersTable, ExerciseTable, completedExerciseTable } from "@/config/schema";
+import { CourseChaptersTable, ExerciseTable, completedExerciseTable, coursesTable } from "@/config/schema";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/config/db";
 import { eq, and } from "drizzle-orm";
@@ -10,8 +10,7 @@ export async function POST(req: NextRequest) {
     const user = await currentUser();
     const userEmail = user?.primaryEmailAddress?.emailAddress!;
 
-    // Fetch chapter + all exercises for side panel
-    const courseResult = await db
+    const chapterResult = await db
       .select()
       .from(CourseChaptersTable)
       .where(
@@ -21,7 +20,11 @@ export async function POST(req: NextRequest) {
         )
       );
 
-    // Fetch requested exercise data
+    const courseResult = await db
+      .select()
+      .from(coursesTable)
+      .where(eq(coursesTable.courseID, courseId));
+
     const exerciseResult = await db
       .select()
       .from(ExerciseTable)
@@ -33,7 +36,6 @@ export async function POST(req: NextRequest) {
         )
       );
 
-    // 🔥 Fetch completed exercises for this logged in user
     const completed = await db
       .select()
       .from(completedExerciseTable)
@@ -45,9 +47,12 @@ export async function POST(req: NextRequest) {
       );
 
     return NextResponse.json({
-      ...courseResult[0],
-      exerciseData: exerciseResult[0],
-      completedExercises: completed, // ⬅️ ADDED
+      ...chapterResult[0],
+      exerciseData: {
+        ...exerciseResult[0],
+        technology: courseResult[0].technology?.toLowerCase() || "static"
+      },
+      completedExercises: completed,
     });
   } catch (err: any) {
     console.error(err);

@@ -1,44 +1,49 @@
-'use client';
+"use client";
 
-import * as Clerk from '@clerk/elements/common';
-import * as SignIn from '@clerk/elements/sign-in';
-import Image from 'next/image';
+import * as Clerk from "@clerk/elements/common";
+import * as SignIn from "@clerk/elements/sign-in";
+import Image from "next/image";
 
 export default function SignInPage() {
   return (
-    <div className="min-h-screen grid w-full items-center bg-zinc-100 px-4 font-mono text-sm">
-
+    <div className="min-h-screen w-full flex items-center justify-center bg-zinc-100 px-4 font-mono text-sm">
       <SignIn.Root>
-
         <SignIn.Step
           name="start"
-          className="mx-auto w-full sm:w-96 space-y-6 bg-white px-4 py-8 border-4 border-black shadow-[8px_8px_0_0_#000]"
+          className="w-full max-w-sm sm:max-w-md
+                     space-y-6 bg-white
+                     px-4 sm:px-6 py-8
+                     border-4 border-black
+                     shadow-[8px_8px_0_0_#000]"
         >
-          {/* Header */}
           <header className="text-center flex flex-col items-center">
-             <Image
-              src={'/logo.png'} width={48} height={48}
-              alt="PixelPathsala Logo"/>
+            <Image
+              src="/logo.png"
+              width={48}
+              height={48}
+              alt="PixelPathshala Logo"
+            />
 
-            <h1 className="mt-3 text-base font-bold tracking-wide text-black uppercase">
-              Sign in to PixelPathsala 
+            <h1 className="mt-3 text-sm sm:text-base font-bold tracking-wide text-black uppercase">
+              Sign in to PixelPathshala
             </h1>
           </header>
 
-          {/* Global Errors */}
           <Clerk.GlobalError className="block text-sm text-red-500" />
 
-          {/* GOOGLE LOGIN */}
           <Clerk.Connection
             name="google"
-            className="flex w-full items-center justify-center gap-3 px-4 py-2 bg-yellow-400 border-2 border-black shadow-[4px_4px_0_0_#000] active:translate-y-[2px] active:shadow-none font-bold"
+            className="flex w-full items-center justify-center
+                       gap-3 px-4 py-2
+                       bg-yellow-400 border-2 border-black
+                       shadow-[4px_4px_0_0_#000]
+                       active:translate-y-[2px] active:shadow-none
+                       font-bold text-black"
           >
-            <span className="text-black">Login with Google</span>
+            Login with Google
           </Clerk.Connection>
 
-          {/* EMAIL & PASSWORD LOGIN */}
           <div className="space-y-4">
-            {/* Email Field */}
             <Clerk.Field name="identifier" className="space-y-1">
               <Clerk.Label className="font-bold text-black uppercase">
                 Email
@@ -46,12 +51,15 @@ export default function SignInPage() {
               <Clerk.Input
                 type="email"
                 required
-                className="w-full px-3 py-2 bg-white border-2 border-black shadow-[3px_3px_0_0_#000] outline-none focus:border-yellow-500"
+                className="w-full px-3 py-2
+                           bg-white border-2 border-black
+                           shadow-[3px_3px_0_0_#000]
+                           outline-none focus:border-yellow-500
+                           text-black placeholder:text-gray-400"
               />
               <Clerk.FieldError className="text-sm text-red-500" />
             </Clerk.Field>
 
-            {/* Password Field */}
             <Clerk.Field name="password" className="space-y-1">
               <Clerk.Label className="font-bold text-black uppercase">
                 Password
@@ -59,23 +67,29 @@ export default function SignInPage() {
               <Clerk.Input
                 type="password"
                 required
-                className="w-full px-3 py-2 bg-white border-2 border-black shadow-[3px_3px_0_0_#000] outline-none focus:border-yellow-500"
+                className="w-full px-3 py-2
+                           bg-white border-2 border-black
+                           shadow-[3px_3px_0_0_#000]
+                           outline-none focus:border-yellow-500
+                           text-black placeholder:text-gray-400"
               />
               <Clerk.FieldError className="text-sm text-red-500" />
             </Clerk.Field>
           </div>
 
-          {/* SUBMIT BUTTON */}
           <SignIn.Action
             submit
-            className="w-full px-4 py-2 bg-yellow-400 border-2 border-black shadow-[4px_4px_0_0_#000] active:translate-y-[2px] active:shadow-none text-black font-bold uppercase"
+            className="w-full px-4 py-2
+                       bg-yellow-400 border-2 border-black
+                       shadow-[4px_4px_0_0_#000]
+                       active:translate-y-[2px] active:shadow-none
+                       text-black font-bold uppercase"
           >
             Sign In
           </SignIn.Action>
 
-          {/* CREATE ACCOUNT LINK */}
           <p className="text-center text-xs text-black">
-            No account?{' '}
+            No account?{" "}
             <Clerk.Link
               navigate="sign-up"
               className="font-bold underline underline-offset-2 hover:text-yellow-600 font-game"
@@ -83,10 +97,8 @@ export default function SignInPage() {
               Create an account
             </Clerk.Link>
           </p>
-
         </SignIn.Step>
       </SignIn.Root>
-
     </div>
   );
 }

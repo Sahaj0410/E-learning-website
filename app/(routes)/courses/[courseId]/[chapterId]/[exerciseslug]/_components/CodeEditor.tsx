@@ -1,5 +1,6 @@
 "use client";
-import React from "react";
+
+import React, { useEffect, useState } from "react";
 import Split from "react-split";
 import {
   SandpackProvider,
@@ -21,35 +22,56 @@ type Props = {
   isCompleted: boolean;
 };
 
-const CodeEditorChildren = ({ onCompleteExercise, isCompleted }: any) => {
+function CodeEditorActions({
+  onCompleteExercise,
+  localCompleted,
+}: {
+  onCompleteExercise: () => void;
+  localCompleted: boolean;
+}) {
   const { sandpack } = useSandpack();
+
   return (
-    <div className="bg-[#151515] px-3 py-2 flex justify-center gap-4 sticky bottom-0 z-20">
-      <Button variant="pixel" size="lg" onClick={() => sandpack.runSandpack()}>
+    <div className="bg-[#151515] px-3 py-3 flex justify-center gap-3">
+      <Button
+        variant="pixel"
+        size="lg"
+        onClick={() => sandpack.runSandpack()}
+      >
         Run Code
       </Button>
 
       <Button
         variant="pixel"
-        className={`bg-[#a3e534] ${
-          isCompleted ? "opacity-50 cursor-not-allowed" : ""
-        }`}
         size="lg"
+        className={`bg-[#a3e534] ${
+          localCompleted ? "opacity-50 cursor-not-allowed" : ""
+        }`}
         onClick={onCompleteExercise}
-        disabled={isCompleted}
+        disabled={localCompleted}
       >
-        {isCompleted ? "Completed" : "Mark Completed"}
+        {localCompleted ? "Completed" : "Mark Completed"}
       </Button>
     </div>
   );
-};
+}
 
-function CodeEditor({ courseExerciseData, isCompleted }: Props) {
+export default function CodeEditor({
+  courseExerciseData,
+  isCompleted,
+}: Props) {
   const router = useRouter();
   const { user } = useUser();
+  const [localCompleted, setLocalCompleted] = useState(isCompleted);
+
+  useEffect(() => {
+    setLocalCompleted(isCompleted);
+  }, [isCompleted]);
 
   const onCompleteExercise = async () => {
-    if (!courseExerciseData || isCompleted) return;
+    if (!courseExerciseData || localCompleted) return;
+
+    setLocalCompleted(true);
 
     const { courseId, chapterId, exerciseId } =
       courseExerciseData.exerciseData;
@@ -58,61 +80,55 @@ function CodeEditor({ courseExerciseData, isCompleted }: Props) {
       courseId: Number(courseId),
       chapterId: Number(chapterId),
       exerciseId: String(exerciseId),
-      userEmail: user!.primaryEmailAddress?.emailAddress,
+      userEmail: user?.primaryEmailAddress?.emailAddress,
     });
 
-    toast.success("Exercise Completed 🚀");
-
-toast.success("Exercise Completed 🚀");
-
-router.refresh();
+    toast.success("Exercise completed");
+    router.refresh();
   };
+
+  const template =
+    courseExerciseData?.exerciseData?.technology === "react"
+      ? "react"
+      : "static";
 
   return (
     <SandpackProvider
-      template="static"
+      template={template}
       theme="dark"
       files={{
         [`/${
-          courseExerciseData?.exerciseData?.exercisesContent?.starterCode?.fileName ||
-          "index.html"
+          courseExerciseData?.exerciseData?.exercisesContent?.starterCode
+            ?.fileName || "index.html"
         }`]:
-          courseExerciseData?.exerciseData?.exercisesContent?.starterCode?.code ||
-          "",
+          courseExerciseData?.exerciseData?.exercisesContent?.starterCode
+            ?.code || "",
       }}
-      options={{
-        autorun: false,
-        autoReload: false,
-      }}
+      options={{ autorun: false, autoReload: false }}
     >
-      <SandpackLayout className="h-full bg-white">
+      <SandpackLayout className="h-full pb-[72px]">
         <Split
-          className="flex h-full w-full"
+          className="flex h-full w-full flex-col md:flex-row"
           sizes={[50, 50]}
           minSize={200}
-          gutterSize={10}
-          direction="horizontal"
+          gutterSize={8}
         >
-          <div className="flex flex-col h-full w-full">
-            <div className="flex-1 min-h-0 overflow-auto">
+          <div className="flex flex-col h-full min-h-0">
+            <div className="flex-1 overflow-auto">
               <SandpackCodeEditor showTabs showRunButton={false} />
             </div>
 
-            <CodeEditorChildren
+            <CodeEditorActions
               onCompleteExercise={onCompleteExercise}
-              isCompleted={isCompleted}
+              localCompleted={localCompleted}
             />
           </div>
 
-          <SandpackPreview
-            showNavigator
-            showOpenInCodeSandbox={false}
-            showOpenNewtab
-          />
+          <div className="h-[300px] md:h-auto">
+            <SandpackPreview showNavigator />
+          </div>
         </Split>
       </SandpackLayout>
     </SandpackProvider>
   );
 }
-
-export default CodeEditor;

@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/config/db';
-import { completedExerciseTable, CourseChaptersTable, coursesTable, EnrolledCourseTable } from '@/config/schema';
-import { and, eq, desc } from 'drizzle-orm';
+import {
+  completedExerciseTable,
+  CourseChaptersTable,
+  coursesTable,
+  EnrolledCourseTable,
+  usersTable
+} from '@/config/schema';
+import { and, eq, desc, asc, inArray } from 'drizzle-orm';
 import { currentUser } from '@clerk/nextjs/server';
 
 export async function GET(req: NextRequest) {
@@ -10,6 +16,15 @@ export async function GET(req: NextRequest) {
     const courseIdParam = searchParams.get('courseId');
 
     const user = await currentUser();
+    const userEmail = user?.primaryEmailAddress?.emailAddress || "";
+
+    const dbUser = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.email, userEmail))
+      .limit(1);
+
+    const subscription = dbUser[0]?.subscriptionStatus || "free";
 
     if (courseIdParam) {
       const courseId = Number(courseIdParam);
@@ -17,51 +32,44 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Invalid courseId' }, { status: 400 });
       }
 
-      // Fetch single course
-      const result = await db
+      const courseQuery = await db
         .select()
         .from(coursesTable)
         .where(eq(coursesTable.courseID, courseId));
 
-      if (!result || result.length === 0) {
+      if (!courseQuery.length) {
         return NextResponse.json({ error: 'Course not found' }, { status: 404 });
       }
 
-      // Fetch chapters ordered
       const chapterResult = await db
         .select()
         .from(CourseChaptersTable)
         .where(eq(CourseChaptersTable.courseID, courseId))
-        .orderBy(CourseChaptersTable.chapterID);
+        .orderBy(asc(CourseChaptersTable.chapterID));
 
-      // Sort exercises inside each chapter (if exists)
       chapterResult.forEach((chapter: any) => {
         if (chapter.exercises) {
           chapter.exercises.sort((a: any, b: any) => Number(a.xp) - Number(b.xp));
         }
       });
 
-      // Check enrollment
       const enrolledCourse = await db
         .select()
         .from(EnrolledCourseTable)
         .where(
           and(
             eq(EnrolledCourseTable.courseId, courseId),
-            eq(EnrolledCourseTable.userId, user?.primaryEmailAddress?.emailAddress || "")
+            eq(EnrolledCourseTable.userId, userEmail)
           )
         );
 
-      const isEnrolledCourse = enrolledCourse?.length > 0;
-
-      // Completed Exercises (ordered)
       const completedExercises = await db
         .select()
         .from(completedExerciseTable)
         .where(
           and(
             eq(completedExerciseTable.courseId, courseId),
-            eq(completedExerciseTable.userId, user?.primaryEmailAddress?.emailAddress || "")
+            eq(completedExerciseTable.userId, userEmail)
           )
         )
         .orderBy(
@@ -70,25 +78,84 @@ export async function GET(req: NextRequest) {
         );
 
       return NextResponse.json({
-        ...result[0],
+        ...courseQuery[0],
         chapters: chapterResult,
-        userEnrolled: isEnrolledCourse,
+        userEnrolled: enrolledCourse.length > 0,
         courseEnrolledInfo: enrolledCourse[0] || null,
-        completedExercises: completedExercises
+        completedExercises,
+        userSubscription: subscription 
       });
     }
 
-    // Fetch all courses if no courseId provided
-    const all = await db.select().from(coursesTable);
-    return NextResponse.json(
-      all.map((course: any) => ({
-        ...course,
-        userEnrolled: false,
-      }))
-    );
+
+    const enrolledCourses = await db
+      .select()
+      .from(EnrolledCourseTable)
+      .where(eq(EnrolledCourseTable.userId, userEmail));
+
+    if (enrolledCourses.length === 0) {
+      const all = await db.select().from(coursesTable);
+      return NextResponse.json(
+        all.map((course: any) => ({
+          ...course,
+          userEnrolled: false,
+        }))
+      );
+    }
+
+    const courseIds = enrolledCourses.map(c => c.courseId);
+
+    const courses = await db
+      .select()
+      .from(coursesTable)
+      //@ts-ignore
+      .where(inArray(coursesTable.courseID, courseIds));
+
+    const chapters = await db
+      .select()
+      .from(CourseChaptersTable)
+      //@ts-ignore
+      .where(inArray(CourseChaptersTable.courseID, courseIds))
+      .orderBy(asc(CourseChaptersTable.chapterID));
+
+    const completed = await db
+      .select()
+      .from(completedExerciseTable)
+      //@ts-ignore
+      .where(and(inArray(completedExerciseTable.courseId, courseIds),
+        eq(completedExerciseTable.userId, userEmail)))
+      .orderBy(
+        desc(completedExerciseTable.courseId),
+        desc(completedExerciseTable.exerciseId)
+      );
+
+    const formattedResult = courses.map(course => {
+      const courseEnrollInfo = enrolledCourses.find(e => e.courseId === course.courseID);
+
+      const courseChapters = chapters.filter(ch => ch.courseID === course.courseID);
+      const completedCount = completed.filter(cx => cx.courseId === course.courseID).length;
+
+      const totalExercises = courseChapters.reduce((acc, chapter) => {
+        const exercisesCount = Array.isArray(chapter.exercises) ? chapter.exercises.length : 0;
+        return acc + exercisesCount;
+      }, 0);
+
+      return {
+        courseId: course.courseID,
+        title: course.title,
+        bannerImage: course.bannerImage,
+        totalExercises,
+        completedExercises: completedCount,
+        xpEarned: courseEnrollInfo?.xpEarned || 0,
+        level: course.level,
+        userSubscription: subscription, // 🔥 include here too
+      };
+    });
+
+    return NextResponse.json(formattedResult);
 
   } catch (err) {
-    console.error('GET /api/course error:', err);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    console.error("GET /api/course error:", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

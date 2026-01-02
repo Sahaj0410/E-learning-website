@@ -1,12 +1,12 @@
 import { id } from "date-fns/locale";
-import { integer, json, pgTable, varchar, timestamp } from "drizzle-orm/pg-core";
-
+import { pgTable, integer, text, varchar, json , timestamp} from "drizzle-orm/pg-core";
 export const usersTable = pgTable("users", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   name: varchar({ length: 255 }).notNull(),
   email: varchar({ length: 255 }).notNull().unique(),
   points: integer().default(0),
-  Subscription: varchar()
+  subscriptionStatus: text("subscriptionStatus").default("free"),
+
 });
 
 export const coursesTable = pgTable("courses", {
@@ -16,7 +16,9 @@ export const coursesTable = pgTable("courses", {
   desc: varchar().notNull(),
   bannerImage: varchar().notNull(),
   level: varchar().default('Beginner'),
-  tags: varchar()
+  tags: varchar(),
+  technology: text("technology").notNull().default("html"),
+
 });
 
 export const CourseChaptersTable = pgTable('courseChapters',{

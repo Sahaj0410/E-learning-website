@@ -1,9 +1,11 @@
-'use client';
+"use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-
+import axios from "axios";
+import { useParams } from "next/navigation";
+import { UserButton, useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -15,153 +17,108 @@ import {
   NavigationMenuTrigger,
   NavigationMenuViewport,
 } from "@/components/ui/navigation-menu";
-import { UserButton, useUser } from "@clerk/nextjs";
-import { User } from "lucide-react";
-import { useParams, usePathname } from "next/navigation";
-
-
-
-
-const courses = [
-  {
-    id: 1,
-    name: 'HTML',
-    desc: 'Learn the fundamentals of HTML and build the structure of modern web pages.',
-    path: '/course/1/detail'
-  },
-  {
-    id: 2,
-    name: 'CSS',
-    desc: 'Master CSS to style and design responsive, visually appealing web layouts.',
-    path: '/course/2/detail'
-  },
-  {
-    id: 3,
-    name: 'React',
-    desc: 'Build dynamic and interactive web applications using the React JavaScript library.',
-    path: '/course/3/detail'
-  },
-  {
-    id: 4,
-    name: 'React Advanced',
-    desc: 'Deep dive into advanced React concepts including hooks, state management, performance optimization, and architectural patterns.',
-    path: '/course/4/detail'
-  },
-  {
-    id: 5,
-    name: 'Python',
-    desc: 'Learn Python programming from basics to intermediate level, covering logic building, functions, and real-world applications.',
-    path: '/course/5/detail'
-  },
-  {
-    id: 6,
-    name: 'Python Advanced',
-    desc: 'Master advanced Python concepts such as OOP, modules, APIs, data processing, and automation.',
-    path: '/course/6/detail'
-  },
-  {
-    id: 7,
-    name: 'Generative AI',
-    desc: 'Explore prompt engineering, LLMs, embeddings, image generation, and build GenAI-powered applications.',
-    path: '/course/7/detail'
-  },
-  {
-    id: 8,
-    name: 'Machine Learning',
-    desc: 'Understand ML concepts, algorithms, data preprocessing, model training, evaluation, and deployment.',
-    path: '/course/8/detail'
-  },
-  {
-    id: 9,
-    name: 'JavaScript',
-    desc: 'Learn core JavaScript concepts, asynchronous programming, DOM manipulation, and modern ES6+ features.',
-    path: '/course/9/detail'
-  }
-];
+import { course as Course } from "@/app/(routes)/courses/_components/CourseList";
+import { BrainCircuit } from "lucide-react";
 
 function Header() {
-
   const { user } = useUser();
+  const [courses, setCourses] = useState<Course[]>();
+  const { exerciseslug } = useParams();
 
-  const path = usePathname();
-  console.log("Current Path:", path);
-
-  const {exerciseslug} = useParams();
-
+  useEffect(() => {
+    const getCourses = async () => {
+      const result = await axios.get("/api/course/all");
+      setCourses(result.data);
+    };
+    getCourses();
+  }, []);
 
   return (
-    <div className="p-4 max-w-7xl flex justify-between items-center w-full">
-      <div className="flex items-center gap-1 ">
-        <h2 className="font-bold text-2xl font-game">PixelPathshala</h2>
-        <Image src={"/logo.png"} alt="logo" width={40} height={40} />
-      </div>
-
-      {/* Navbar */}
-   {!exerciseslug ?  <NavigationMenu>
-        <NavigationMenuList className="gap-8">
-          <NavigationMenuItem>
-            <NavigationMenuTrigger>Courses</NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="grid md:grid-cols-2 gap-2 sm:w-[400px] md:w-[500px] lg:w-[600px]">
-                {courses.map((course, index) => (
-                  <li key={course.id ?? index} className="p-2 hover:bg-accent rounded-xl cursor-pointer">
-                    {/* If you want each course clickable, wrap with Link */}
-                    <Link href={course.path} className="block">
-                      <h2 className="font-medium">{course.name}</h2>
-                      <p className="text-sm text-gray-500 ">{course.desc}</p>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-
-          <NavigationMenuItem>
-            {/* use asChild so NavigationMenuLink doesn't render its own <a> */}
-            <NavigationMenuLink asChild>
-              <Link href={'/projects'} className="navigation-menu-link">projects</Link>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-
-          <NavigationMenuItem>
-            <NavigationMenuLink asChild>
-              <Link href={'/pricing'} className="navigation-menu-link">pricing</Link>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-
-          <NavigationMenuItem>
-            <NavigationMenuLink asChild>
-              <Link href={'/contact-us'} className="navigation-menu-link">Contact Us</Link>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-        </NavigationMenuList>
-
-        {/* optional: NavigationMenuIndicator / Viewport if your component supports them */}
-        <NavigationMenuIndicator />
-        <NavigationMenuViewport />
-      </NavigationMenu>
-      :
-      <h2 className="text-2xl">
-        {exerciseslug?.toString()?.replaceAll("-"," ").toLocaleUpperCase()}
-      </h2>
-    }
-
-      {/* Signup / User */}
-      {!user ? (
-        <Link href="/sign-in">
-          <Button className="font-game text-2xl" variant={"pixel"}>
-            Sign-in
-          </Button>
+    <header className="w-full border-b border-zinc-800">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+        <Link href="/" className="flex items-center gap-2 shrink-0">
+          <h2 className="font-game font-bold text-lg sm:text-xl md:text-2xl">
+            PixelPathshala
+          </h2>
+          <BrainCircuit/>
         </Link>
-      ) : (
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard">
-            <Button className="font-game text-2xl" variant={"pixel"}>Dashboard</Button>
-          </Link>
-          <UserButton />
+
+        {!exerciseslug && courses ? (
+          <NavigationMenu className="hidden md:flex">
+            <NavigationMenuList className="gap-6">
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Courses</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-[320px] sm:w-[420px] md:w-[520px] p-3">
+                    {courses.map((course, index) => (
+                      <li
+                        key={index}
+                        className="p-3 bg-zinc-900 border border-zinc-700 rounded-xl hover:bg-zinc-800 transition"
+                      >
+                        <Link
+                          href={`/courses/${course.id}`}
+                          className="block space-y-1"
+                        >
+                          <h2 className="text-sm font-medium text-white">
+                            {course.title}
+                          </h2>
+
+                          <p className="text-xs text-gray-400 line-clamp-2">
+                            {course.desc || "No description available"}
+                          </p>
+
+                          <p className="text-[10px] text-yellow-300 uppercase">
+                            Level: {course.level || "Beginner"}
+                          </p>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link href="/pricing">Pricing</Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link href="/contact-us">Contact Us</Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+
+            <NavigationMenuIndicator />
+            <NavigationMenuViewport />
+          </NavigationMenu>
+        ) : (
+          <h2 className="hidden md:block text-sm sm:text-base font-game uppercase truncate">
+            {exerciseslug?.toString().replaceAll("-", " ")}
+          </h2>
+        )}
+
+        <div className="flex items-center gap-3 shrink-0">
+          {!user ? (
+            <Link href="/sign-in">
+              <Button variant="pixel" className="text-sm sm:text-base">
+                Sign-in
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Link href="/dashboard" className="hidden sm:block">
+                <Button variant="pixel" className="text-sm sm:text-base">
+                  Dashboard
+                </Button>
+              </Link>
+              <UserButton />
+            </>
+          )}
         </div>
-      )}
-    </div>
+      </div>
+    </header>
   );
 }
 

@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { course as Course } from "../../_components/CourseList";
 import {
@@ -12,15 +14,20 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  TooltipProvider,
 } from "@/components/ui/tooltip";
 import Link from "next/link";
 
 type Props = {
   loading: boolean;
   courseDetail?: Course;
+  isEnrolled: boolean;
 };
 
-function CourseChapters({ loading, courseDetail }: Props) {
+function CourseChapters({ loading, courseDetail, isEnrolled }: Props) {
+  const subscription = courseDetail?.userSubscription || "free";
+  const isPro = subscription === "pro";
+
   const isExerciseCompleted = (chapterId: number, slug: string) => {
     return courseDetail?.completedExercises?.some(
       (item) =>
@@ -34,35 +41,28 @@ function CourseChapters({ loading, courseDetail }: Props) {
     exerciseIndex: number,
     chapter: any
   ) => {
+    if (!isEnrolled) return false;
+    if (isPro) return true;
+
     const completed = courseDetail?.completedExercises || [];
     if (!courseDetail?.chapters) return false;
 
-    // First exercise initially unlocked
     if (completed.length === 0) {
       return chapterIndex === 0 && exerciseIndex === 0;
     }
 
-    const slug = chapter.exercises[exerciseIndex].slug;
-
-    // Already completed -> unlocked
-    if (isExerciseCompleted(chapter.chapterID, slug)) return true;
-
     const prevExercise = chapter.exercises[exerciseIndex - 1];
-
-    // Previous exercise in same chapter completed
     if (
       prevExercise &&
       isExerciseCompleted(chapter.chapterID, prevExercise.slug)
     )
       return true;
 
-    // First exercise of next chapter unlocks when prior chapter done
     const prevChapter = courseDetail.chapters[chapterIndex - 1];
     if (prevChapter) {
       const prevChCompleted = prevChapter.exercises.every((e: any) =>
         isExerciseCompleted(prevChapter.chapterID, e.slug)
       );
-
       if (prevChCompleted && exerciseIndex === 0) return true;
     }
 
@@ -70,75 +70,112 @@ function CourseChapters({ loading, courseDetail }: Props) {
   };
 
   return (
-    <div>
-      {!courseDetail?.chapters?.length ? (
-        <Skeleton className="w-full h-[100px] rounded-2xl" />
-      ) : (
-        <div className="p-5 border-4 rounded-2xl">
-          {courseDetail.chapters.map((chapter, chapterIndex) => (
-            <Accordion type="single" collapsible key={chapterIndex}>
-              <AccordionItem value={`item-${chapterIndex}`}>
-                <AccordionTrigger className="p-3 hover:bg-zinc-800 font-game text-3xl">
-                  <div className="flex gap-10">
-                    <h2 className="h-12 w-12 bg-zinc-800 flex items-center justify-center rounded-full">
-                      {chapterIndex + 1}
-                    </h2>
-                    <h2>{chapter.name}</h2>
-                  </div>
-                </AccordionTrigger>
+    <TooltipProvider delayDuration={200}>
+      <section>
+        {!courseDetail?.chapters?.length ? (
+          <Skeleton className="w-full h-[100px] rounded-2xl" />
+        ) : (
+          <div className="p-4 sm:p-5 border-4 rounded-2xl">
+            {courseDetail.chapters.map((chapter, chapterIndex) => (
+              <Accordion type="single" collapsible key={chapterIndex}>
+                <AccordionItem value={`item-${chapterIndex}`}>
+                  <AccordionTrigger className="p-3 hover:bg-zinc-800 font-game text-base sm:text-xl md:text-3xl">
+                    <div className="flex items-center gap-4 sm:gap-6 md:gap-10">
+                      <div className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 bg-zinc-800 flex items-center justify-center rounded-full text-sm sm:text-base">
+                        {chapterIndex + 1}
+                      </div>
+                      <h2 className="truncate">{chapter.name}</h2>
+                    </div>
+                  </AccordionTrigger>
 
-                <AccordionContent>
-                  <div className="p-7 bg-zinc-900 rounded-xl">
-                    {chapter.exercises.map((exercise: any, exerciseIndex: number) => {
-                      const completed = isExerciseCompleted(chapter.chapterID, exercise.slug);
-                      const enabled = EnableExercise(chapterIndex, exerciseIndex, chapter);
+                  <AccordionContent>
+                    <div className="p-4 sm:p-6 bg-zinc-900 rounded-xl">
+                      {chapter.exercises.map(
+                        (exercise: any, exerciseIndex: number) => {
+                          const completed = isExerciseCompleted(
+                            chapter.chapterID,
+                            exercise.slug
+                          );
 
-                      return (
-                        <div
-                          key={exerciseIndex}
-                          className="flex items-center justify-between mb-7"
-                        >
-                          <div className="flex items-center gap-10 font-game">
-                            <h2 className="text-2xl">
-                              Exercise{" "}
-                              {chapterIndex * chapter.exercises.length + exerciseIndex + 1}
-                            </h2>
-                            <h2 className="text-2xl">{exercise.name}</h2>
-                          </div>
+                          const enabled = EnableExercise(
+                            chapterIndex,
+                            exerciseIndex,
+                            chapter
+                          );
 
-                          {completed ? (
-                            <Button variant="pixel" className="bg-green-600 text-black">
-                              Completed
-                            </Button>
-                          ) : enabled ? (
-                            <Link
-                              href={`/courses/${courseDetail.id}/${chapter.chapterID}/${exercise.slug}`}
+                          const tooltipMessage = !isEnrolled
+                            ? "Enroll to unlock exercises"
+                            : !isPro && !enabled
+                            ? "Upgrade to Pro"
+                            : "Complete previous exercise";
+
+                          return (
+                            <div
+                              key={exerciseIndex}
+                              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5"
                             >
-                              <Button variant="pixel">{exercise.xp} xp</Button>
-                            </Link>
-                          ) : (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="pixelDisabled" disabled>
-                                  Locked
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 font-game">
+                                <h2 className="text-sm sm:text-lg md:text-2xl">
+                                  Exercise{" "}
+                                  {chapterIndex *
+                                    chapter.exercises.length +
+                                    exerciseIndex +
+                                    1}
+                                </h2>
+                                <h2 className="text-sm sm:text-lg md:text-2xl">
+                                  {exercise.name}
+                                </h2>
+                              </div>
+
+                              {completed ? (
+                                <Button
+                                  variant="pixel"
+                                  className="bg-green-600 text-black"
+                                  disabled
+                                >
+                                  Completed
                                 </Button>
-                              </TooltipTrigger>
-                              <TooltipContent className="font-game text-lg">
-                                Please complete previous exercise
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          ))}
-        </div>
-      )}
-    </div>
+                              ) : enabled ? (
+                                <Link
+                                  href={`/courses/${courseDetail.id}/${chapter.chapterID}/${exercise.slug}`}
+                                >
+                                  <Button variant="pixel">
+                                    {exercise.xp} XP
+                                  </Button>
+                                </Link>
+                              ) : (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="cursor-not-allowed">
+                                      <Button
+                                        variant="pixelDisabled"
+                                        disabled
+                                      >
+                                        Locked
+                                      </Button>
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    side="left"
+                                    className="font-game text-sm sm:text-lg"
+                                  >
+                                    {tooltipMessage}
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+                            </div>
+                          );
+                        }
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            ))}
+          </div>
+        )}
+      </section>
+    </TooltipProvider>
   );
 }
 
