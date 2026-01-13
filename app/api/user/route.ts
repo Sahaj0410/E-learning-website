@@ -18,7 +18,8 @@ export async function POST(req:NextRequest){
                     const newUser = {
                         name:user?.fullName??'',
                         email:user?.primaryEmailAddress?.emailAddress??'',
-                        points:0
+                        points:0,
+                         subscriptionStatus: "free",
                     }
 
                     const result = await db.insert(usersTable)

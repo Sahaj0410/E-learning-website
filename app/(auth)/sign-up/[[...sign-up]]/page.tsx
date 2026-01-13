@@ -7,7 +7,9 @@ import Image from "next/image";
 export default function SignUpPage() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-zinc-900 px-4 font-mono text-sm text-white">
-      <SignUp.Root>
+<SignUp.Root routing="path" path="/sign-up">
+
+
         <SignUp.Step
           name="start"
           className="w-full max-w-sm sm:max-w-md
@@ -30,7 +32,18 @@ export default function SignUpPage() {
           </header>
 
           <CClerk.GlobalError className="block text-sm text-red-500" />
-
+             <CClerk.Connection
+                       name="google"
+                       className="flex w-full items-center justify-center
+                                  gap-3 px-4 py-2
+                                  bg-yellow-400 border-2 border-black
+                                  shadow-[4px_4px_0_0_#000]
+                                  active:translate-y-[2px] active:shadow-none
+                                  font-bold text-black"
+                     >
+                       Sign-in with Google
+                       <Image src={"/google.png"} alt="" width={20} height={20}/>
+                     </CClerk.Connection>
           <div className="space-y-4">
             <CClerk.Field name="emailAddress" className="space-y-1">
               <CClerk.Label className="font-bold text-yellow-400 uppercase">
@@ -82,7 +95,7 @@ export default function SignUpPage() {
               navigate="sign-in"
               className="font-bold underline underline-offset-2 hover:text-yellow-200"
             >
-              Sign in
+              log in
             </CClerk.Link>
           </p>
         </SignUp.Step>

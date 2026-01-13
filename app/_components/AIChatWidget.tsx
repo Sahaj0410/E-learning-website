@@ -57,7 +57,6 @@ export default function AIChatWidget() {
 
   return (
     <>
-      {/* AI HELP BUTTON */}
       <button
         onClick={() => {
           setOpen((prev) => {
@@ -82,7 +81,6 @@ export default function AIChatWidget() {
         <span className="whitespace-nowrap">AI Help</span>
       </button>
 
-      {/* CHAT WINDOW */}
       {open && (
         <div
           className="

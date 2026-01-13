@@ -25,7 +25,7 @@ export default function SignInPage() {
             />
 
             <h1 className="mt-3 text-sm sm:text-base font-bold tracking-wide text-black uppercase">
-              Sign in to PixelPathshala
+              Sign in to PixelPathshala 
             </h1>
           </header>
 
@@ -41,6 +41,8 @@ export default function SignInPage() {
                        font-bold text-black"
           >
             Login with Google
+     <Image src={"/google.png"} alt="" width={20} height={20}/>
+            
           </Clerk.Connection>
 
           <div className="space-y-4">
